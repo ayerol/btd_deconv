@@ -1,15 +1,15 @@
-function final_sol = find_solution(costs,all_estim_hrfs,Fs)
+function final_sol = find_solution(costs,all_estim_filters,Fs)
 
 
-M = size(all_estim_hrfs,2);
-numBTDs = size(all_estim_hrfs,3);
+M = size(all_estim_filters,2);
+numBTDs = size(all_estim_filters,3);
 estimated_hrf_peak_lats = zeros(numBTDs,M);
 
 for testno = 1:numBTDs
 
     for m = 1:M
 
-        curr_hrf = all_estim_hrfs(:,m,testno);
+        curr_hrf = all_estim_filters(:,m,testno);
         [~,mx_idx] = max(curr_hrf);
         estimated_hrf_peak_lats(testno,m) = mx_idx;
 
@@ -85,7 +85,7 @@ dists(dists == 0) = 1000;
 % Final HRF is equal to the mean of the HRFs belonging to the cluster with
 % minimum intra-cluster distance
 
-final_sol = mean(all_estim_hrfs(:,:,test_idx(c == minc)),3);
+final_sol = mean(all_estim_filters(:,:,test_idx(c == minc)),3);
 
 
 end

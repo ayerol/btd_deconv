@@ -1,4 +1,4 @@
-function [sol,cost] = btd_deconv(T,M,R,Lacc,u)
+function [sol,cost] = btd_deconv(T,M,Lacc,u,source_list)
 
 
 % REMARK:
@@ -10,7 +10,7 @@ function [sol,cost] = btd_deconv(T,M,R,Lacc,u)
 % Aybuke erol (a.erol@tudelft.nl)
 
 
-L = length(u) - 1; K = size(T,3);
+L = length(u) - 1; K = size(T,3); R = length(source_list);
 impulse = zeros(L+1,1);
 impulse(floor((L+1)/2)+1) = 1;
 initPnt = zeros(3,M);
@@ -22,7 +22,7 @@ for m = 1:M
     
     for r = 1:R
         
-        if r == 1 
+        if source_list{r} == 't'
             
             % Initialize the HRF parameters to be estimated
 
@@ -82,7 +82,7 @@ for r = 1:R
     
     for m = 1:M
         
-        if r == 1 
+        if source_list{r} == 't'
             
             factor_H{r}{m} = {['H' num2str(m) num2str(r)],tnonneg,thrf,...
                 ttoepl};
