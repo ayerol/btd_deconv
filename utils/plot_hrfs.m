@@ -2,7 +2,7 @@ function plot_hrfs(final_sol,H,u,cmap)
 
 M = size(final_sol,2);
 
-figure;
+fig = figure;
 for m = 1:M
     subplot(M,1,m);
     final_sol(1,m) = 0;
@@ -28,3 +28,8 @@ for m = 1:M
 end
 xlabel('Time (s)');
 
+% set(fig,'Units','Inches');
+% pos = get(fig,'Position');
+% set(fig,'PaperPositionMode','Auto','PaperUnits','Inches',...
+%     'PaperSize',[pos(3), pos(4)])
+% print(fig,'../Results/example_hrf_est','-dpdf','-r0')

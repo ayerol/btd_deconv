@@ -18,7 +18,7 @@
 
 clear; clc; close all; rng default;
 addpath(genpath('../../../../../Toolboxes/tensorlab4.0beta'))
-addpath(genpath('utils'))
+addpath(genpath('../utils'))
 
 
 %% Parameters
@@ -38,7 +38,7 @@ numReps = 20;           % number of stimulus repetitions
 snr_val = 0;            % signal-to-noise ratio of measurements (dB)
 numRuns = 100;          % number of monte-carlo iterations
 numBTDs = 20;           % number of BTD repetitions
-svd_thres = 5;          % tolerance for pseudo-inverse of H
+svd_thres = 10;         % tolerance for pseudo-inverse of H
 
 
 %% Initializations
@@ -46,6 +46,9 @@ svd_thres = 5;          % tolerance for pseudo-inverse of H
 
 u = 0:1/Fs:L/Fs; % time-axis of HRFs
 H = zeros(L+1,M,R); % stores the simulated HRF forms
+
+% Specify how many task ('t') and artifact ('a') sources -->
+source_list = {'t','a'};
 
 costs = zeros(numBTDs,1); % final value of the BTD objective function
 
@@ -55,13 +58,18 @@ all_estim_hrfs = zeros(L+1,M,numBTDs); % all of the estimated HRFs within a
 true_hrf_peak_lats = zeros(M,1); % true HRF peak latencies    
 
 final_hrf_error = zeros(numRuns,1); % average (for m = 1,...M) peak latency
-                                      % error
+                                                                    % error
                                                                     
-ious = zeros(1,numRuns); % intersection-over-union (IoU) values between the 
-                           % true and estimated source signals
+corrs = zeros(1,numRuns); % Pearson correlation coefficient scores between 
+                            % the true source signals and the estimated
+                            % ones by the proposed method
                                                                     
-ious_fixedHrf = zeros(1,numRuns); % for comparison of the IoU values when
-                                     % a fixed HRF was assumed
+corrs_fixedHrf = zeros(1,numRuns); % for comparison of correlation scores
+                                     % when a fixed HRF is assumed
+
+corrs_lowest_cost_Hrf = zeros(1,numRuns); % for comparison of correlation 
+                                     % scores when the lowest-cost
+                                     % solution is selected
 
 cmap = lines(M); % colormap for visualization
 
@@ -69,8 +77,7 @@ construct_hrf = @(z) (z(2)*(((z(3)^z(1))*(u.^(z(1)-1)).*exp(-z(3)*u))/...
     gamma(z(1)))); % gamma-model for generating the HRFs
 
 % Construct an HRF with fixed parameters to compare EP estimation results
-                            % (use the default canonical model parameters)
-fixedHrf = 1/gamma(6)*u.^(6-1).*exp(-u)-1/6*1/gamma(16)*u.^(16-1).*exp(-u);
+fixedHrf = 1/gamma(1)*u.^(6).*exp(-u.^1.3);
 
 
 %% Monte-carlo runs
@@ -79,11 +86,14 @@ fixedHrf = 1/gamma(6)*u.^(6-1).*exp(-u)-1/6*1/gamma(16)*u.^(16-1).*exp(-u);
 for norun = 1:numRuns
 
 
+    disp(['Monte-carlo run #' num2str(norun) '/' num2str(numRuns) '...']);
+
+
     %% Generate sources
 
 
-    % Generate the EP (surce signal of interest): a binary signal which is
-    % equal to 1 when the stimulus is on, and 0 when off
+    % Generate the EP (source signal of interest): a binary signal which is
+    % equal to 1 when the stimulus is on, and 0 when off -->
     
     ep = zeros(round(10*Fs),1); % start with a rest period of 10 seconds
 
@@ -118,7 +128,7 @@ for norun = 1:numRuns
 
         for r = 1:R
 
-            if r == 1 % Source of interest
+            if source_list{r} == 't' % Source of interest
 
                 z = zs(m,:);
 
@@ -128,9 +138,7 @@ for norun = 1:numRuns
                 [mx,max_idx] = max(h);
                 true_hrf_peak_lats(m) = max_idx; % in samples
 
-            end
-
-            if r == 2 % Noise/Artifact source
+            else % Noise/Artifact source
 
                 H(:,m,r) = m * impulse;
 
@@ -151,7 +159,7 @@ for norun = 1:numRuns
 
         for m = 1:M
 
-            if r == 1
+            if source_list{r} == 't'
 
                 temp = conv(s(:,r),H(:,m,r));
                 x(:,m) = temp(1:N);
@@ -160,8 +168,7 @@ for norun = 1:numRuns
             else
 
                 % The added noise power should be according to the 
-                % specified SNR value
-
+                % specified SNR value -->
                 noise_pwr(m) = sig_pwr(:,m)/var(s(:,r))/db2pow(snr_val);
                 x(:,m) = x(:,m) + sqrt(noise_pwr(m))*s(:,r);
 
@@ -201,7 +208,7 @@ for norun = 1:numRuns
 
     for testno = 1:numBTDs
 
-        [sol,cost] = btd_deconv(T,M,R,Lacc,u);
+        [sol,cost] = btd_deconv(T,M,Lacc,u,source_list);
 
         for m = 1:M
 
@@ -232,11 +239,7 @@ for norun = 1:numRuns
     end
 
     final_hrf_error(norun) = final_hrf_error(norun)/M/Fs; % average over 
-    % regions and convert unit to seconds
-
-
-    % Visualization of the estimated HRFs (gives same plot as in the paper)
-    if norun == 2 && snr_val == 0; plot_hrfs(final_hrfs,H,u,cmap); end
+                                   % regions and convert unit to seconds
 
 
     %% Source Signal Estimation
@@ -250,19 +253,40 @@ for norun = 1:numRuns
             [Lacc L+Lacc],zeros(Lacc-1,1),zeros(Lacc-1,1)));
 
     end
-
     
+    if snr_val < 0 % SVD threshold is lowered for high noise levels, 
+                                % to limit the interference of noise
+
+        svd_thres = 5;
+
+    end
+
     ep_rec = medfilt1(estimate_source...
-        (H_T_est,svd_thres,x_n_cut,N,L,Lacc),12); % estimated ep
-    
-    iou = compute_iou(ep_rec,t_axis,stim_on,stim_off); % ratio (over 1)
+        (H_T_est,svd_thres,x_n_cut,N,L,Lacc,1),12); % estimated ep
 
-    % Normalize the iou ratio with respect to the stimulus duration
-    iou = iou * stim_dur; % over 4 (in seconds)
-
-    ious(norun) = mean(iou); % average over stimulus repetitions
+    corrs(norun) = corr(ep_rec,ep);
 
     
+    % Do the same for the lowest-cost solution
+
+    H_T_lowest_cost_est = []; 
+
+    [~,min_cost_idx] = min(costs);
+
+    for m = 1:M
+
+        H_T_lowest_cost_est = cat(1,H_T_lowest_cost_est,struct_toeplitz...
+            (all_estim_hrfs(:,m,min_cost_idx),[],[Lacc L+Lacc],...
+            zeros(Lacc-1,1),zeros(Lacc-1,1)));
+
+    end
+
+    ep_rec_lowest_cost_Hrf = medfilt1(estimate_source...
+        (H_T_lowest_cost_est,svd_thres,x_n_cut,N,L,Lacc,1),12);
+
+    corrs_lowest_cost_Hrf(norun) = corr(ep_rec_lowest_cost_Hrf,ep);
+
+
     % Do the same for the fixed HRF case
 
     H_T_fixed_est = [];
@@ -275,20 +299,9 @@ for norun = 1:numRuns
     end
 
     ep_rec_fixedHrf = medfilt1(estimate_source...
-        (H_T_fixed_est,svd_thres,x_n_cut,N,L,Lacc),12);
+        (H_T_fixed_est,svd_thres,x_n_cut,N,L,Lacc,1),12);
 
-    iou_fixedHrf = compute_iou(ep_rec_fixedHrf,t_axis,stim_on,stim_off);
-
-    iou_fixedHrf = iou_fixedHrf * stim_dur; 
-
-    ious_fixedHrf(norun) = mean(iou_fixedHrf); 
-
-    
-    % Visualization of the estimated ep (gives same plot as in the paper)
-    if norun == 1 && snr_val == 0
-        plot_source(ep_rec,stim_on,stim_off,t_axis); 
-    end
-
+    corrs_fixedHrf(norun) = corr(ep_rec_fixedHrf,ep);
 
 end
 
@@ -306,6 +319,8 @@ end
 
 if ~exist('Results', 'dir'); mkdir('Results'); end
 
-save(['Results/ious_' num2str(snr_val) 'dB.mat'],'ious'); 
-save(['Results/ious_fixedHrf' num2str(snr_val) 'dB.mat'],'ious_fixedHrf'); 
-
+save(['Results/corrs_' num2str(snr_val) 'dB.mat'],'corrs'); 
+save(['Results/corrs_fixedHrf_' num2str(snr_val) 'dB.mat'],...
+    'corrs_fixedHrf'); 
+save(['Results/corrs_lowest_cost_Hrf_' num2str(snr_val) 'dB.mat'],...
+    'corrs_lowest_cost_Hrf'); 

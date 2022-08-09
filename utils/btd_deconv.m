@@ -7,7 +7,7 @@ function [sol,cost] = btd_deconv(T,M,Lacc,u,source_list)
 
 % Tensorlab (check [1]). The necessary adjustments are made by 
 
-% Aybuke erol (a.erol@tudelft.nl)
+% Aybuke Erol (a.erol@tudelft.nl)
 
 
 L = length(u) - 1; K = size(T,3); R = length(source_list);
