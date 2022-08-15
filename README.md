@@ -5,7 +5,7 @@ This package reproduces the results of the paper titled "Deconvolution of the Fu
 
 All codes are written in MATLAB. Tensorlab should be installed (https://www.tensorlab.net) for using this repository. 
 
-The folder 'utils/' has the implementation of the proposed method. The main algorithm is 'btd_deconv.m', which calls some of the other functions in the folder, such as the tensor structurings. The remaining of the functions are used for visualizing the results and are called within the test codes.
+The folder 'utils/' has the implementation of the proposed method. The main algorithm is given in 'btd_deconv.m', which calls some of the other functions in the folder such as the tensor structurings. The remaining of the functions are used for visualizing the results and are called within the test codes.
 
 The test codes are presented in two separate folders: one for simulations and one for real functional ultrasound data. After adding Tensorlab to the search path of MATLAB, the test codes can be run without any extra adjustments, i.e., the structure of the repository should be kept as it is.
 
