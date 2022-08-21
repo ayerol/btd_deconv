@@ -7,7 +7,7 @@ All codes are written in MATLAB. Tensorlab should be installed (https://www.tens
 
 Within this package, it is possible to test the proposed algorithm both over simulated data (under the folder *Simulations [+Demo]*) and real functional ultrasound time-series (under the folder *Real Data*). After adding Tensorlab to the search path of MATLAB, the test codes can be run without any extra adjustments, i.e., the structure of the repository should be kept as it is.
 
-The software is so far tested on Windows and Mac.
+The software is so far tested on Windows and macOS.
 
 #
 
