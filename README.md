@@ -1,7 +1,8 @@
 # btd_deconv
 *A deconvolution approach for functional neuroimaging data to jointly estimate HRFs and source signals*
 
-This package reproduces the results of the paper titled "Deconvolution of the Functional Ultrasound Response in the Mouse Visual Pathway Using Block-Term Decomposition" by Aybüke Erol, Chagajeg Soloukey, Bastian Generowicz, Nikki van Dorp, Sebastiaan Koekkoek, Pieter Kruizinga and Borbála Hunyadi (currently under review).
+This package reproduces the results of the paper: 
+Erol, A., Soloukey, C., Generowicz, B. et al. Deconvolution of the Functional Ultrasound Response in the Mouse Visual Pathway Using Block-Term Decomposition. Neuroinform (2022). https://doi.org/10.1007/s12021-022-09613-3
 
 All codes are written in MATLAB. Tensorlab should be installed (https://www.tensorlab.net) for using this repository. 
 
