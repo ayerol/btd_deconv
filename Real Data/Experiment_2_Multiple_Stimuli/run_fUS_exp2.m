@@ -131,6 +131,14 @@ for r = 1:R
 
 end
 
+H_all = [];
+
+for r = 1:R
+
+    H_all = cat(2,H_all,H_est{r});
+
+end
+
 
 %% Source signal estimation
 
@@ -154,21 +162,21 @@ for r = 1:num_task_sources
     subplot(num_task_sources,r,1);
     curr_r = estim_source_order(r);
     curr_ep = ep(:,true_source_order(r));
-    ctr = 1; temp = zeros(1,min(size(H_est{1}))-1);
+    ctr = 1; temp = zeros(min(size(H_est{1}))-1,R);
 
-    for svd_thres = 2:min(size(H_est{1})) % find the optimal SVD threshold
+    for svd_thres = 2:min(size(H_all)) % find the optimal SVD threshold
 
-        ep_rec = medfilt1(estimate_source(H_est{curr_r},svd_thres,...
-            x_n_cut,N,L,Lacc,1),20);
-        temp(ctr) = corr(curr_ep,ep_rec);
+        ep_rec = medfilt1(estimate_source(H_all,svd_thres,x_n_cut,N,L,...
+            Lacc,R),20);
+        temp(ctr,:) = corr(curr_ep,ep_rec);
         ctr = ctr + 1;
 
     end
 
     [~,I] = max(temp);
     svd_thres = I+1;
-    ep_rec = medfilt1(estimate_source(H_est{curr_r},svd_thres,...
-        x_n_cut,N,L,Lacc,1),20);
+    ep_rec = medfilt1(estimate_source(H_all,svd_thres,x_n_cut,N,L,...
+        Lacc,R),20);
 
     p2 = plot(t_axis,ep_rec,'LineWidth',2,'Color','k');
     ymin = min(ep_rec(:)); ymin = ymin - abs(ymin)*0.1; 
