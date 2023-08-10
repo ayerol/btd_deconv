@@ -144,43 +144,53 @@ end
 
 
 num_task_sources = sum(strcmp(source_list,'t'));
-figure; cmap = lines(num_task_sources);
+
+ep_rec = medfilt1(estimate_source(H_all,min(size(H_all)),x_n_cut,N,L,...
+    Lacc,R),20);
 all_corrs = zeros(num_task_sources,num_task_sources);
 
-% These orderings are determined after analyzing the estimated sources
-% to visualize them with the stimulus condition they match the most -->
-estim_source_order = [3,4,2,5,1]; 
-true_source_order = [3,4,2,1,5]; 
+for i = 1:num_task_sources
+    for j = 1:num_task_sources
+        all_corrs(i,j) = corr(ep(:,i),ep_rec(:,j));
+    end
+end
+
+% % These orderings are determined after analyzing the estimated sources
+% % to visualize them with the stimulus condition they match the most -->
+
+estim_source_order = fliplr([3,1,5,4,2]); 
+true_source_order = fliplr([1,5,2,4,3]); 
 ep_lgds_ordered = ep_lgds(true_source_order);
+
+for r = 1:num_task_sources
+    if all_corrs(true_source_order(r),estim_source_order(r)) < 0
+        all_corrs(:,estim_source_order(r)) = ...
+            -all_corrs(:,estim_source_order(r));
+    end
+end
 
 % Plot settings -->
 ax_pos = ([0.105 0.285 0.465 0.64 0.82]);
 seg_len = [.16 .16 .155 .16 .16]; 
 
+figure; cmap = lines(num_task_sources);
+
 for r = 1:num_task_sources
 
     subplot(num_task_sources,r,1);
-    curr_r = estim_source_order(r);
+    
     curr_ep = ep(:,true_source_order(r));
-    ctr = 1; temp = zeros(min(size(H_est{1}))-1,R);
 
-    for svd_thres = 2:min(size(H_all)) % find the optimal SVD threshold
-
-        ep_rec = medfilt1(estimate_source(H_all,svd_thres,x_n_cut,N,L,...
-            Lacc,R),20);
-        temp(ctr,:) = corr(curr_ep,ep_rec);
-        ctr = ctr + 1;
-
+    if corr(ep_rec(:,estim_source_order(r)),curr_ep) < 0
+        ep_rec(:,estim_source_order(r)) = -ep_rec(:,estim_source_order(r));
     end
 
-    [~,I] = max(temp);
-    svd_thres = I+1;
-    ep_rec = medfilt1(estimate_source(H_all,svd_thres,x_n_cut,N,L,...
-        Lacc,R),20);
-
-    p2 = plot(t_axis,ep_rec,'LineWidth',2,'Color','k');
-    ymin = min(ep_rec(:)); ymin = ymin - abs(ymin)*0.1; 
-    ymax = max(ep_rec(:)); ymax = ymax + ymax*0.1;
+    p2 = plot(t_axis,ep_rec(:,estim_source_order(r)),...
+        'LineWidth',2,'Color','k');
+    ymin = min(ep_rec(:,estim_source_order(r))); 
+    ymin = ymin - abs(ymin)*0.1; 
+    ymax = max(ep_rec(:,estim_source_order(r))); 
+    ymax = ymax + ymax*0.1;
     ep_start_times = find(diff(curr_ep)==1)+1;
     stim_on = t_axis(ep_start_times);
     stim_off = t_axis(find(diff(curr_ep)==-1)+1);
@@ -199,19 +209,9 @@ for r = 1:num_task_sources
     xlim([0 t_axis(end)]); ylim([ymin ymax]); xlim([0 t_axis(end)]);
     set(gca,'YTick',[]); set(gca,'FontSize',15);
 
-    if r == 4 % adjust the legend position
-
-        legend([p1 p2],{ep_lgds_ordered{r},...
-        ['Estimated Source Signal #' num2str(curr_r)]},...
-        'FontSize',14,'Location','northeast','Orientation','horizontal');
-
-    else
-
-        legend([p1 p2],{ep_lgds_ordered{r},...
-        ['Estimated Source Signal #' num2str(curr_r)]},...
+    legend([p1 p2],{ep_lgds_ordered{r},...
+        ['Estimated Source Signal #' num2str(estim_source_order(r))]},...
         'FontSize',14,'Location','southeast','Orientation','horizontal');
-
-    end
 
     ax = gca;
     ax.Position = [0.01 ax_pos(r) 0.98 seg_len(r)];
@@ -222,7 +222,6 @@ for r = 1:num_task_sources
         set(gca,'XTick',200:200:1200,'XTickLabel',{});
     end
 
-    all_corrs(:,r) = corr(ep,ep_rec);
 
 end
 
@@ -230,16 +229,17 @@ end
 %% Correlation matrix
 
 
-all_corrs = all_corrs(fliplr(true_source_order),5:-1:1); % flip to place
-           % the best results at the beginning of the correlation matrix
+all_corrs = all_corrs(fliplr(true_source_order),...
+    fliplr(estim_source_order)); % flip to place the best results at the 
+                                   % beginning of the correlation matrix
 figure; imagesc(all_corrs); 
+cmap = custom_colormap(-.2,max(all_corrs(:)));
+colormap(cmap);
 set(gca,'YTick',1:5);
 ep_lgds_ordered = fliplr(ep_lgds_ordered);
 set(gca,'YTickLabels',ep_lgds_ordered);
 set(gca,'XTick',1:5);
-set(gca,'XTickLabels',{'#5','#1','#2','#4','#3'});
-cmap = custom_colormap(min(all_corrs(:)),max(all_corrs(:)));
-colormap(cmap);
+set(gca,'XTickLabels',{'#3','#1','#5','#4','#2'});
 caxis([-.2 .5]); cb = colorbar;
 cb.Ticks = -.2:.2:.4;
 ylabel('True Stimulus Times'); xlabel('Estimated Source Signals');
