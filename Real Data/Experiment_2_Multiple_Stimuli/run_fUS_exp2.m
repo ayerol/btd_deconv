@@ -158,16 +158,9 @@ end
 % % These orderings are determined after analyzing the estimated sources
 % % to visualize them with the stimulus condition they match the most -->
 
-estim_source_order = fliplr([3,1,5,4,2]); 
-true_source_order = fliplr([1,5,2,4,3]); 
+estim_source_order = fliplr([3,5,2,4,1]); 
+true_source_order = fliplr([1,5,4,2,3]); 
 ep_lgds_ordered = ep_lgds(true_source_order);
-
-for r = 1:num_task_sources
-    if all_corrs(true_source_order(r),estim_source_order(r)) < 0
-        all_corrs(:,estim_source_order(r)) = ...
-            -all_corrs(:,estim_source_order(r));
-    end
-end
 
 % Plot settings -->
 ax_pos = ([0.105 0.285 0.465 0.64 0.82]);
@@ -180,10 +173,6 @@ for r = 1:num_task_sources
     subplot(num_task_sources,r,1);
     
     curr_ep = ep(:,true_source_order(r));
-
-    if corr(ep_rec(:,estim_source_order(r)),curr_ep) < 0
-        ep_rec(:,estim_source_order(r)) = -ep_rec(:,estim_source_order(r));
-    end
 
     p2 = plot(t_axis,ep_rec(:,estim_source_order(r)),...
         'LineWidth',2,'Color','k');
@@ -239,7 +228,7 @@ set(gca,'YTick',1:5);
 ep_lgds_ordered = fliplr(ep_lgds_ordered);
 set(gca,'YTickLabels',ep_lgds_ordered);
 set(gca,'XTick',1:5);
-set(gca,'XTickLabels',{'#3','#1','#5','#4','#2'});
+set(gca,'XTickLabels',{'#3','#5','#2','#4','#1'});
 caxis([-.2 .5]); cb = colorbar;
 cb.Ticks = -.2:.2:.4;
 ylabel('True Stimulus Times'); xlabel('Estimated Source Signals');
