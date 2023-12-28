@@ -24,4 +24,4 @@ The software is so far tested on Windows and macOS.
 
 #
 
-Contact a.erol@tudelft.nl for any questions.
+Contact a.kazaz@tudelft.nl for any questions.
