@@ -1,6 +1,6 @@
 
 
-% Author: Aybuke Erol (a.erol@tudelft.nl)
+% Author: Aybuke Erol (a.kazaz@tudelft.nl)
 
 
 % References
@@ -144,10 +144,18 @@ end
 
 
 num_task_sources = sum(strcmp(source_list,'t'));
-
+ 
 ep_rec = medfilt1(estimate_source(H_all,min(size(H_all)),x_n_cut,N,L,...
     Lacc,R),20);
 all_corrs = zeros(num_task_sources,num_task_sources);
+
+% % These orderings are determined after analyzing the estimated sources
+% % to match them with the stimulus condition they resemble the most -->
+
+estim_source_order = fliplr([3,1,5,4,2]); 
+true_source_order = fliplr([1,5,2,4,3]); 
+ep_lgds_ordered = ep_lgds(true_source_order);
+ep_rec(:,[1 4 5]) = - ep_rec(:,[1 4 5]);
 
 for i = 1:num_task_sources
     for j = 1:num_task_sources
@@ -155,18 +163,11 @@ for i = 1:num_task_sources
     end
 end
 
-% % These orderings are determined after analyzing the estimated sources
-% % to visualize them with the stimulus condition they match the most -->
-
-estim_source_order = fliplr([3,5,2,4,1]); 
-true_source_order = fliplr([1,5,4,2,3]); 
-ep_lgds_ordered = ep_lgds(true_source_order);
-
 % Plot settings -->
 ax_pos = ([0.105 0.285 0.465 0.64 0.82]);
 seg_len = [.16 .16 .155 .16 .16]; 
 
-figure; cmap = lines(num_task_sources);
+fig = figure; cmap = lines(num_task_sources);
 
 for r = 1:num_task_sources
 
@@ -198,9 +199,10 @@ for r = 1:num_task_sources
     xlim([0 t_axis(end)]); ylim([ymin ymax]); xlim([0 t_axis(end)]);
     set(gca,'YTick',[]); set(gca,'FontSize',15);
 
+    if r == 3, loc = 'northeast'; else, loc = 'southeast'; end
     legend([p1 p2],{ep_lgds_ordered{r},...
         ['Estimated Source Signal #' num2str(estim_source_order(r))]},...
-        'FontSize',14,'Location','southeast','Orientation','horizontal');
+        'FontSize',14,'Location',loc,'Orientation','horizontal');
 
     ax = gca;
     ax.Position = [0.01 ax_pos(r) 0.98 seg_len(r)];
@@ -213,9 +215,10 @@ for r = 1:num_task_sources
 
 
 end
+% exportgraphics(fig,'/Users/aerol/Desktop/multi_source.pdf')
 
 
-%% Correlation matrix
+% Correlation matrix
 
 
 all_corrs = all_corrs(fliplr(true_source_order),...
@@ -228,7 +231,7 @@ set(gca,'YTick',1:5);
 ep_lgds_ordered = fliplr(ep_lgds_ordered);
 set(gca,'YTickLabels',ep_lgds_ordered);
 set(gca,'XTick',1:5);
-set(gca,'XTickLabels',{'#3','#5','#2','#4','#1'});
+set(gca,'XTickLabels',{'#3','#1','#5','#4','#2'});
 caxis([-.2 .5]); cb = colorbar;
 cb.Ticks = -.2:.2:.4;
 ylabel('True Stimulus Times'); xlabel('Estimated Source Signals');
@@ -247,4 +250,3 @@ for r = 1:length(temp)
     false_corrs(r) = sum(temp(:,r))-temp(r,r);
 
 end
-
