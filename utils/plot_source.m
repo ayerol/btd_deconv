@@ -1,3 +1,15 @@
+
+% plot_source.m plots the estimated source signal across the given stimulus
+% times
+%
+% INPUT:
+%   ep_rec  : estimated source vector 
+%   stim_on : on-times of stimuli (in seconds)
+%   stim_off: off-times of stimuli (in seconds)
+%   t_axis  : time axis (i.e., x-axis of the plot)
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
 function plot_source(ep_rec,stim_on,stim_off,t_axis)
 
 fig = figure; 

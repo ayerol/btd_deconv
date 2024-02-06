@@ -1,3 +1,18 @@
+
+% find_solution.m returns the final solution of the block-term
+% decomposition after clustering of individual runs
+%
+% INPUT:
+%   costs            : objective value of each run
+%   all_estim_fitlers: estimated hemodynamic response function of each run
+%   Fs               : sampling rate
+% 
+% OUTPUT:
+%   final_sol        : final estimation for the hemodynamic response
+                       % function
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
 function final_sol = find_solution(costs,all_estim_filters,Fs)
 
 

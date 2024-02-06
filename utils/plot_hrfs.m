@@ -1,3 +1,14 @@
+
+% plot_hrfs.m plots the estimated and true hemodynamic response functions
+%
+% INPUT:
+%   final_sol: matrix containing the estimated HRFs
+%   H        : matrix containing the true HRFs
+%   u        : time axis of the HRFs
+%   cmap     : colormap used for visualization
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
 function plot_hrfs(final_sol,H,u,cmap)
 
 M = size(final_sol,2);

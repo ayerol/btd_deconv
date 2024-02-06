@@ -1,16 +1,32 @@
+
+% btd_deconv.m computes the block-term decomposition of a given tensor T
+%
+% INPUT:
+%   T          : tensor of lagged output correlations
+%   M          : number of measurements
+%   Lacc       : L' (window size used for matricizing convolutive mixtures)
+%   u          : time axis of hemodynamic response functions
+%   source_list: a list of characters encoding whether the sources are task
+                 % 't') or artifact ('a') related
+%
+% OUTPUT:
+%   sol        : solution of the block-term decomposition 
+                 % (i.e., factors and core)
+%   cost       : ojective value
+%
+% REMARK: 
+% This code is an extension of the convolutive mixtures demo offered by 
+% Tensorlab (check [1]). The necessary adjustments are made by Aybuke Erol 
+% (a.kazaz@tudelft.nl)
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
 function [sol,cost] = btd_deconv(T,M,Lacc,u,source_list)
 
-
-% REMARK:
-
-% This code is an extension of the convolutive mixtures demo offered by 
-
-% Tensorlab (check [1]). The necessary adjustments are made by 
-
-% Aybuke Erol (a.erol@tudelft.nl)
-
-
-L = length(u) - 1; K = size(T,3); R = length(source_list);
+L = length(u) - 1; % HRF filter length
+K = size(T,3); % number of time lags 
+R = length(source_list); % number of sources
 impulse = zeros(L+1,1);
 impulse(floor((L+1)/2)+1) = 1;
 initPnt = zeros(3,M);
@@ -40,7 +56,7 @@ for m = 1:M
 end
 
 
-% Initialize core tensors
+% Initialize the core
 
 for r = 1:R
     
@@ -49,7 +65,7 @@ for r = 1:R
 end
 
 
-% % Define constraints for all factors
+% % Define constraints for the factors
 
 % Apply gamma-model for HRFs
 thrf = @(z,task)struct_hrf(z,task,u);
@@ -66,11 +82,12 @@ tconst = @(z,task)struct_const(z,task,impulse);
 ttoepl = @(z,task)struct_toeplitz(z,task,[Lacc L+Lacc],zeros(Lacc-1,1),...
     zeros(Lacc-1,1));
 
-% Make sure that the adjacent columns of z are lagging one another
+% % Define constraints for the core
+
+% Toeplitz structuring within the frontal slices of the core tensor
 ttoepl_cores1 = @(z,task)struct_toeplitz(z,task,[L+Lacc,K],flipud(z(2:K)));
 
-% Use the columns of z to form Toeplitz-structured frontal slices of the
-% core tensor
+% Toeplitz structuring across the frontal slices of the core tensor
 ttoepl_cores2 = @(z,task)struct_toeplitz_slices(z,task); 
 
 
@@ -100,7 +117,7 @@ for r = 1:R
 end
 
 
-% Define the remaining factors (core tensors and identity)
+% Define the core tensor
 
 for r = 1:R
     

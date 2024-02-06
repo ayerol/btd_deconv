@@ -1,3 +1,22 @@
+
+% estimate_source.m returns the estimated sources using the estimated 
+% hemodynamic response functions (HRFs) & the data matrix
+%
+% INPUT:
+%   H        : matrix containing the estimated HRFs
+%   svd_thres: cut-off threshold for the singular values of H for
+               % calculating the pseudo-inverse
+%   x_n      : original data matrix
+%   N        : number of time samples in the experiment (=length of ep_rec)
+%   L        : length of the hemodynamic response function(s)
+%   Lacc     : L' (window size used for matricizing convolutive mixtures)
+%   R        : number of sources
+%
+% OUTPUT:
+%   ep_rec   : estimated sources (matrix of size N x R) 
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
 function ep_rec = estimate_source(H,svd_thres,x_n,N,L,Lacc,R)
 
 [~,S,~] = svd(H); 

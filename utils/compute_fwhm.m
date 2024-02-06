@@ -1,3 +1,14 @@
+
+% compute_fwhm.m returns the full-width-at-half-maximum of a given function
+%
+% INPUT:
+%   data: hemodynamic response function 
+%
+% OUTPUT:
+%   fwhm: full-width-at-half-maximum
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
 function fwhm = compute_fwhm(data)
 
 halfMax = max(data) / 2; 

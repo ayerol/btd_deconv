@@ -1,3 +1,17 @@
+
+% custom_colormap.m returns a customized colormap that centralizes "0" at
+% white color and arranges the red-green scale according to the provided
+% minimum-maximum range 
+%
+% INPUT:
+%   mn  : minimum value of the correlation matrix
+%   mx  : maximum value of the correlation matrix
+%
+% OUTPUT:
+%   cmap: custom colormap
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
 function cmap = custom_colormap(mn,mx)
 
 numColors = 100;
